@@ -55,3 +55,46 @@ export async function GET(request: Request){
     }
 
 }
+
+export async function POST(request: Request){
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user) {
+        return NextResponse.json(
+            { message: "Utente non autenticato" },
+            { status: 401 }
+        )
+    }
+    
+    const id_utente = session.user.id
+
+    try {
+
+        const { id_campo } = await request.json()
+
+        if (!id_campo) {
+            return NextResponse.json(
+                { message: "ID campo mancante" },
+                { status: 400 }
+            )
+        }
+
+        const preferito = await prisma.preferiti.create({
+            data: {
+                id_utente: parseInt(id_utente),
+                id_campo: parseInt(id_campo)
+            }
+        })
+
+        return NextResponse.json(
+            { message: "Campo aggiunto ai preferiti", preferito },
+            { status: 201 }
+        )
+    }
+
+    catch {
+        return NextResponse.json(
+            { message: "Errore prisma"},
+            { status: 500 }
+        )
+    }
+}
