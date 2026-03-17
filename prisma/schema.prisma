@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model centri_sportivi {
+  id_centro_sportivo Int             @id(map: "tabella-centro-sportivo_pkey") @default(autoincrement())
+  indirizzo          String
+  citta              String
+  mail               String?
+  numero_telefono    String?         @db.VarChar(20)
+  orario_apertura    DateTime        @db.Time(6)
+  orario_chiusura    DateTime        @db.Time(6)
+  url_immagini       String?
+  id_proprietario    Int             @default(1)
+  nome               String?         @db.VarChar(255)
+  cap                String?         @db.VarChar(5)
+  proprietari        proprietari     @relation(fields: [id_proprietario], references: [id_proprietario], onDelete: Cascade, onUpdate: NoAction, map: "fk_proprietario_centro")
+  tabella_campi      tabella_campi[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model chiusure_straordinarie {
+  id_chiusura_straordinaria Int           @id @default(autoincrement())
+  id_campo                  Int
+  data_chiusura             DateTime      @db.Date
+  tutto_il_giorno           Boolean?      @default(true)
+  ora_inizio                DateTime?     @db.Time(6)
+  ora_fine                  DateTime?     @db.Time(6)
+  motivo                    String?       @db.VarChar(255)
+  tabella_campi             tabella_campi @relation(fields: [id_campo], references: [id_campo], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model orari_regolari {
+  id_orario        Int           @id @default(autoincrement())
+  id_campo         Int
+  giorno_settimana Int
+  ora_apertura     DateTime      @db.Time(6)
+  ora_chiusura     DateTime      @db.Time(6)
+  tabella_campi    tabella_campi @relation(fields: [id_campo], references: [id_campo], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model prenotazioni_attive {
+  id_prenotazione            Int                 @id(map: "tabella-prenotazioni_pkey") @default(autoincrement())
+  id_utente                  Int
+  id_campo                   Int
+  data_campettata            DateTime            @db.Timestamptz(6)
+  data_avvenuta_prenotazione DateTime            @db.Timestamptz(6)
+  importo_da_pagare          Decimal             @db.Decimal(12, 2)
+  importo_pagato             Decimal             @db.Decimal(12, 2)
+  prenotazione_manuale       Boolean?            @default(false)
+  ora_fine                   DateTime?           @db.Time(6)
+  ora_inizio                 DateTime?           @db.Time(6)
+  metodo_pagamento           String?             @db.VarChar(20)
+  no_show                    Boolean?            @default(false)
+  tabella_campi              tabella_campi       @relation(fields: [id_campo], references: [id_campo], onDelete: Cascade, onUpdate: NoAction, map: "fk_collegamento_prenotazioni_campo")
+  utenti                     utenti              @relation(fields: [id_utente], references: [id_utente], onDelete: Cascade, onUpdate: NoAction, map: "fk_collegamento_prenotazioni_utente")
+  storico_pagamenti          storico_pagamenti[]
+
+  @@index([data_campettata, id_prenotazione])
+  @@index([id_campo, data_campettata])
+  @@index([id_utente, data_campettata])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model proprietari {
+  id_proprietario       Int               @id @default(autoincrement())
+  nome_proprietario     String
+  cognome_proprietario  String
+  password_proprietario String
+  mail_proprietario     String            @unique(map: "unique_mail_proprietario")
+  username_proprietario String            @unique(map: "unique_username_proprietario")
+  centri_sportivi       centri_sportivi[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model storico_pagamenti {
+  id_pagamento        Int                 @id @default(autoincrement())
+  importo_pagamento   Decimal             @db.Decimal(12, 2)
+  id_prenotazione     Int
+  data_ora_pagamento  DateTime?           @default(now()) @db.Timestamptz(6)
+  metodo_pagamento    String?             @db.VarChar(20)
+  id_campo            Int
+  prenotazioni_attive prenotazioni_attive @relation(fields: [id_prenotazione], references: [id_prenotazione], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model storico_prenotazioni {
+  id_prenotazione            Int       @id @default(autoincrement())
+  id_utente                  Int
+  id_campo_sportivo          Int
+  data_campettata            DateTime  @db.Timestamptz(6)
+  data_avvenuta_prenotazione DateTime  @db.Timestamptz(6)
+  importo_da_pagare          Decimal   @db.Decimal(12, 2)
+  importo_pagato             Decimal   @db.Decimal(12, 2)
+  evento_ricorrente          Boolean
+  cancellata                 Boolean?  @default(false)
+  data_cancellazione         DateTime? @db.Timestamptz(6)
+  cancellato_da_id           Int?
+  motivo_cancellazione       String?
+  prenotazione_manuale       Boolean?  @default(false)
+  ora_fine                   DateTime? @db.Time(6)
+  ora_inizio                 DateTime? @db.Time(6)
+  metodo_pagamento           String?   @db.VarChar(20)
+  no_show                    Boolean?  @default(false)
+
+  @@index([data_campettata, id_prenotazione])
+  @@index([id_campo_sportivo, data_campettata])
+  @@index([id_utente, data_campettata])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tabella_campi {
+  id_campo               Int                      @id @default(autoincrement())
+  id_centro_sportivo     Int
+  disponibile            Boolean
+  numero_persone         Int
+  prezzo_ora_standard    Decimal                  @db.Decimal(12, 2)
+  nome_campo             String?
+  chiusure_straordinarie chiusure_straordinarie[]
+  orari_regolari         orari_regolari[]
+  prenotazioni_attive    prenotazioni_attive[]
+  centri_sportivi        centri_sportivi          @relation(fields: [id_centro_sportivo], references: [id_centro_sportivo], onDelete: Cascade, onUpdate: NoAction, map: "fk_collegamento_campo_centro")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model utenti {
+  id_utente              Int                   @id(map: "tabella-utenti_pkey") @default(autoincrement())
+  nome_utente            String
+  cognome_utente         String?
+  username_fittizio      String                @unique(map: "username-fittizio_unique")
+  mail                   String?               @unique(map: "tabella-utenti_mail_key")
+  telefono               String?               @unique(map: "tabella-utenti_telefono_key") @db.VarChar(20)
+  password               String?
+  url_foto_utente        String?
+  ha_prenotazioni_attive Boolean               @default(false)
+  prenotazioni_attive    prenotazioni_attive[]
+}
