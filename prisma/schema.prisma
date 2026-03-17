@@ -130,6 +130,7 @@ model tabella_campi {
   nome_campo             String?
   chiusure_straordinarie chiusure_straordinarie[]
   orari_regolari         orari_regolari[]
+  preferiti              preferiti[]
   prenotazioni_attive    prenotazioni_attive[]
   centri_sportivi        centri_sportivi          @relation(fields: [id_centro_sportivo], references: [id_centro_sportivo], onDelete: Cascade, onUpdate: NoAction, map: "fk_collegamento_campo_centro")
 }
@@ -145,5 +146,18 @@ model utenti {
   password               String?
   url_foto_utente        String?
   ha_prenotazioni_attive Boolean               @default(false)
+  preferiti              preferiti[]
   prenotazioni_attive    prenotazioni_attive[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model preferiti {
+  id_preferito  Int           @id @default(autoincrement())
+  id_utente     Int
+  id_campo      Int
+  tabella_campi tabella_campi @relation(fields: [id_campo], references: [id_campo], onDelete: Cascade, onUpdate: NoAction)
+  utenti        utenti        @relation(fields: [id_utente], references: [id_utente], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([id_utente, id_campo], map: "constraint_3")
+  @@unique([id_utente, id_campo], map: "unique_user_campo")
 }
