@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma"
 import { toZonedTime, fromZonedTime } from "date-fns-tz"
 
 export async function GET() {
+    const numero_persone = 5 //MODIFICA NELLE API!!!!
     const ZONE_TIME = "Europe/Rome"
     const session = await getServerSession(authOptions)
     if (!session || !session.user) {
