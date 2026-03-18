@@ -21,34 +21,51 @@ export async function GET() {
 
     const user_id = parseInt(session.user.id)
 
-    const pren_last = await prisma.storico_prenotazioni.findMany({
-        where: {
-            id_utente: user_id,
-        },
-        include: {
-            tabella_campi: true
-        },
-        orderBy: {
-            data_avvenuta_prenotazione: "desc"
-        },
-        take: 20 // prendiamo di più per poi deduplicare
-    })
+    try {
+        const pren_last = await prisma.storico_prenotazioni.findMany({
+            where: {
+                id_utente: user_id,
+            },
+            include: {
+                tabella_campi: true
+            },
+            orderBy: {
+                data_avvenuta_prenotazione: "desc"
+            },
+            take: 20
+        })
 
-    // Mappa e deduplicazione per id_campo
-    const campi_map = new Map<number, Campo>()
-
-    for (const prenotazione of pren_last) {
-        const id = prenotazione.id_campo_sportivo
-        if (!campi_map.has(id)) {
-            campi_map.set(id, {
-                id_campo: id,
-                nome_campo: prenotazione.tabella_campi.nome_campo,
-                prezzo_ora_standard: prenotazione.tabella_campi.prezzo_ora_standard.toNumber(),
-                id_centro_sportivo: prenotazione.tabella_campi.id_centro_sportivo,
-            })
+        if (pren_last.length === 0) {
+            return NextResponse.json(
+                { message: "Nessuna prenotazione trovata" },
+                { status: 200 }
+            )
         }
 
-    }
+        const campi_map = new Map<number, Campo>()
 
-    return NextResponse.json(Array.from(campi_map.values()))
+        for (const prenotazione of pren_last) {
+            const id = prenotazione.id_campo_sportivo
+            if (!campi_map.has(id)) {
+                campi_map.set(id, {
+                    id_campo: id,
+                    nome_campo: prenotazione.tabella_campi.nome_campo,
+                    prezzo_ora_standard: prenotazione.tabella_campi.prezzo_ora_standard.toNumber(),
+                    id_centro_sportivo: prenotazione.tabella_campi.id_centro_sportivo,
+                })
+            }
+            if (campi_map.size === 5) break
+        }
+
+        return NextResponse.json(
+            Array.from(campi_map.values()),
+            { status: 200 }
+        )
+
+    } catch {
+        return NextResponse.json(
+            { message: "Errore interno del server" },
+            { status: 500 }
+        )
+    }
 }

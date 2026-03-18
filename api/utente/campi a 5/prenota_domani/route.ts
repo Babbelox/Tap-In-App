@@ -14,6 +14,7 @@ export default function Minuti(date: Date){
 }
 
 export async function GET(){
+    const numero_persone:number = 5 // MODIFICALO IN OGNI API!!!!
     const ZONE_TIME = "Europe/Rome"
     const session = await getServerSession(authOptions)
     if (!session || !session.user) {
@@ -34,7 +35,7 @@ export async function GET(){
         const campi_doma = await prisma.tabella_campi.findMany({
             where:{
                 disponibile: true,
-                numero_persone: 5,
+                numero_persone: numero_persone,
                 orari_regolari:{
                     some:{
                         giorno_settimana: giorno_settimana_db,

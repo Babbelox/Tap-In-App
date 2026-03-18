@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/authConfig"
 // Funzione che prende campi DISPONIBILI a 5
 
-export async function GET(request: Request){
+export async function GET(){
 
     const session = await getServerSession(authOptions)
     if (!session || !session.user) {
