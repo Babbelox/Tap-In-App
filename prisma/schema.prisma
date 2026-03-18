@@ -97,23 +97,24 @@ model storico_pagamenti {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model storico_prenotazioni {
-  id_prenotazione            Int       @id @default(autoincrement())
+  id_prenotazione            Int           @id @default(autoincrement())
   id_utente                  Int
   id_campo_sportivo          Int
-  data_campettata            DateTime  @db.Timestamptz(6)
-  data_avvenuta_prenotazione DateTime  @db.Timestamptz(6)
-  importo_da_pagare          Decimal   @db.Decimal(12, 2)
-  importo_pagato             Decimal   @db.Decimal(12, 2)
+  data_campettata            DateTime      @db.Timestamptz(6)
+  data_avvenuta_prenotazione DateTime      @db.Timestamptz(6)
+  importo_da_pagare          Decimal       @db.Decimal(12, 2)
+  importo_pagato             Decimal       @db.Decimal(12, 2)
   evento_ricorrente          Boolean
-  cancellata                 Boolean?  @default(false)
-  data_cancellazione         DateTime? @db.Timestamptz(6)
+  cancellata                 Boolean?      @default(false)
+  data_cancellazione         DateTime?     @db.Timestamptz(6)
   cancellato_da_id           Int?
   motivo_cancellazione       String?
-  prenotazione_manuale       Boolean?  @default(false)
-  ora_fine                   DateTime? @db.Time(6)
-  ora_inizio                 DateTime? @db.Time(6)
-  metodo_pagamento           String?   @db.VarChar(20)
-  no_show                    Boolean?  @default(false)
+  prenotazione_manuale       Boolean?      @default(false)
+  ora_fine                   DateTime?     @db.Time(6)
+  ora_inizio                 DateTime?     @db.Time(6)
+  metodo_pagamento           String?       @db.VarChar(20)
+  no_show                    Boolean?      @default(false)
+  tabella_campi              tabella_campi @relation(fields: [id_campo_sportivo], references: [id_campo], onDelete: NoAction, onUpdate: NoAction, map: "constraint_1")
 
   @@index([data_campettata, id_prenotazione])
   @@index([id_campo_sportivo, data_campettata])
@@ -132,6 +133,7 @@ model tabella_campi {
   orari_regolari         orari_regolari[]
   preferiti              preferiti[]
   prenotazioni_attive    prenotazioni_attive[]
+  storico_prenotazioni   storico_prenotazioni[]
   centri_sportivi        centri_sportivi          @relation(fields: [id_centro_sportivo], references: [id_centro_sportivo], onDelete: Cascade, onUpdate: NoAction, map: "fk_collegamento_campo_centro")
 }
 
