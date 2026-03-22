@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-// Funzione che prende campi DISPONIBILI a 5
+// Funzione che prende campi DISPONIBILI
 
 export async function GET(request: Request){
 
