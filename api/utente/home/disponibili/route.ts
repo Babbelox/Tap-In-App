@@ -1,37 +1,30 @@
-// Funzione che fa GET specifici rispetto a varie cose
-
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-// Funzione che prende campi DISPONIBILI
+import { validator } from "@/lib/helpers/validation"
+import { interpreter } from "@/lib/helpers/filter_interpreter"
+import { centri_gen } from "@/lib/prisma_functions/get_centri"
 
-export async function GET(request: Request){
-
-    try {
-        
-        const campo = await prisma.tabella_campi.findMany({
-        where: {disponibile: true, numero_persone: 5},
-        take: 15
+export async function GET(request: Request) {
+  return validator(async (userId) => {
+    return interpreter(request, async (count, all) => {
+      
+      if (all) {
+        const campi = await prisma.tabella_campi.findMany({
+            where: {disponibile: true},
+            take: 20
+        })
+        const centri = centri_gen(campi)
+        return NextResponse.json(centri)
+      }
+      else if(count){
+        const campi_specifici = await prisma.tabella_campi.findMany({
+            where: {disponibile: true, numero_persone: count},
+            take: 15
+        })
+        const centri = centri_gen(campi_specifici)
+        return NextResponse.json(centri)
+      }
+      return NextResponse.json({ message: "Parametri non validi" }, { status: 400 })
     })
-
-        if(campo.length === 0){
-            return NextResponse.json(
-                {message: "nessun campo disponibile"},
-                {status: 500}
-            )
-        }
- 
-        return NextResponse.json(
-            {message: "campi trovati", campo},
-            {status: 200}
-        )
-
-}
-
-    catch {
-        return NextResponse.json(
-            {message: "Errore prisma"},
-            {status: 500}
-        )
-    }
-
+  })
 }

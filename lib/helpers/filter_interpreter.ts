@@ -1,24 +1,24 @@
-import { NextResponse } from "next/server";
-import { req_validation } from "../zod_schemas/schmas";
+import { NextResponse } from "next/server"
+import { req_validation } from "../zod_schemas/schmas"
 
-export async function interpreter(richiesta: Request, handler: (num: number, tutte: boolean) => Promise<NextResponse>) {
-    const body = await richiesta.json()       
-    const parsed = req_validation.safeParse(body)
-  
-    if(!parsed.success)
-        return NextResponse.json(
-            {message: "Richiesta mal formata"},
-            {status: 400}
-    )
-    const tutti = parsed.data.tutte
+export async function interpreter(
+  richiesta: Request,
+  handler: (count: number | null, all: boolean) => Promise<NextResponse>
+) {
+  let body
+  try {
+    body = await richiesta.json()
+  } catch {
+    return NextResponse.json({ message: "Body non valido" }, { status: 400 })
+  }
 
-    if(tutti){
-        const numero_persone = 0
-        return await handler (numero_persone, tutti)
-    }
-    const numero_persone = parsed.data.numero_persone
+  const parsed = req_validation.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ message: "Richiesta mal formata" }, { status: 400 })
+  }
 
+  const all = parsed.data.tutte // --- Tutti i tipi di campi
+  const count = all ? null : parsed.data.numero_persone // --- Numero di persone nel campo
 
-  
-  
+  return await handler(count, all)
 }
