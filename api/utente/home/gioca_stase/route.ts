@@ -26,7 +26,7 @@ export async function GET() {
         const campi_stase = await prisma.tabella_campi.findMany({
             where: {
                 disponibile: true,
-                numero_persone: 5,
+                numero_persone: numero_persone,
                 orari_regolari: {
                     some: {
                         giorno_settimana: giorno_settimana_db,
